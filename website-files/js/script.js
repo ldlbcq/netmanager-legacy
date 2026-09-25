@@ -18,12 +18,14 @@ $("#fullscreen-menu a, .scroll-to-download").on('click', function(e) {
 e.preventDefault(); // Empêche le comportement par défaut du lien
 var targetSection = $($(this).attr('href'));
 
-// Force l'affichage (classe .visible) de la section cible et de toutes
-// celles qui la précèdent AVANT de calculer sa position. Sans ça, une
-// section encore masquée par transform: translateY(100%) a un offset()
-// faussé, et le scroll atterrit trop bas (ex: clic sur Download qui
-// amène en réalité sur Support).
+$("#fullscreen-menu").fadeOut();
+
+// Force l'affichage (classe .visible) de la section cible et de toutes celles
+// qui la précèdent AVANT de calculer sa position. Sans ça, une section encore
+// masquée par transform: translateY(100%) a un offset() faussé.
 var sections = $('.scroll-container').find('.scroll-section');
+var alreadyVisible = targetSection.hasClass('visible');
+
 sections.each(function() {
 $(this).addClass('visible');
 if (this === targetSection.get(0)) {
@@ -31,15 +33,17 @@ return false; // on s'arrête une fois la cible atteinte
 }
 });
 
-$("#fullscreen-menu").fadeOut();
+// La transition CSS (transform 0.5s) doit être terminée avant de mesurer
+// offset().top, sinon la position lue correspond à un état intermédiaire
+// de l'animation et le scroll rate sa cible. Si la section était déjà
+// visible, pas besoin d'attendre.
+var transitionDelay = alreadyVisible ? 0 : 550;
 
-// Faites défiler vers la section cible avec une animation
-// (léger délai pour laisser le temps au reflow après ajout de .visible)
 setTimeout(function() {
 $('html, body').animate({
 scrollTop: targetSection.offset().top - 110 // Ajoutez ou ajustez cette valeur pour corriger la position
 }, 1000);
-}, 50);
+}, transitionDelay);
 });
 
 $("#logo-link").click(function() {
