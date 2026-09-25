@@ -17,12 +17,29 @@ var menuButton = $("#logo-link");
 $("#fullscreen-menu a, .scroll-to-download").on('click', function(e) {
 e.preventDefault(); // Empêche le comportement par défaut du lien
 var targetSection = $($(this).attr('href'));
+
+// Force l'affichage (classe .visible) de la section cible et de toutes
+// celles qui la précèdent AVANT de calculer sa position. Sans ça, une
+// section encore masquée par transform: translateY(100%) a un offset()
+// faussé, et le scroll atterrit trop bas (ex: clic sur Download qui
+// amène en réalité sur Support).
+var sections = $('.scroll-container').find('.scroll-section');
+sections.each(function() {
+$(this).addClass('visible');
+if (this === targetSection.get(0)) {
+return false; // on s'arrête une fois la cible atteinte
+}
+});
+
 $("#fullscreen-menu").fadeOut();
 
 // Faites défiler vers la section cible avec une animation
+// (léger délai pour laisser le temps au reflow après ajout de .visible)
+setTimeout(function() {
 $('html, body').animate({
 scrollTop: targetSection.offset().top - 110 // Ajoutez ou ajustez cette valeur pour corriger la position
 }, 1000);
+}, 50);
 });
 
 $("#logo-link").click(function() {
